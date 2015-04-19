@@ -49,7 +49,6 @@ module.exports = function(www_server, dispatcher, dependencies){
 
     var custom_reply_function = function(original_reply_function, obj){
         var ret;
-        console.log("inside custom_reply_function. Obj=", obj);
         if(obj==undefined){
             obj={};
         };

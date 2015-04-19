@@ -50,6 +50,7 @@ module.exports = function(www_server, dispatcher, dependencies){
 					console.log("złapałem błąd w channel.www_server.js");
 					reply(error);
 				})
+			
 		}
 		// handler POST ma stworzyć usera o podanej nazwie i haśle
 	});
@@ -156,7 +157,7 @@ module.exports = function(www_server, dispatcher, dependencies){
             })
             .catch(function(error){
             	reply(error);
-            })
+            })	
         }
     });
 
