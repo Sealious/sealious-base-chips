@@ -8,7 +8,7 @@ www_server.route({
     path: url,
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.get_all_users(context)
+        Sealious.UserManager.get_all_users(context)
         .then(function(users){
             reply(users);
         })
@@ -20,7 +20,7 @@ www_server.route({
     path: url + "/{user_id}",
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.get_user_data(context, request.params.user_id)
+        Sealious.UserManager.get_user_data(context, request.params.user_id)
         .then(function(user_data){ 
             reply(user_data);
         })
@@ -37,7 +37,7 @@ www_server.route({
     path: url,
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.create_user(context, request.payload.username, request.payload.password)
+        Sealious.UserManager.create_user(context, request.payload.username, request.payload.password)
         .then(function(response){
             if(request.payload.redirect_success_url){
                 console.log(request.payload.redirect_success_url);
@@ -57,7 +57,7 @@ www_server.route({
     path: url+"/{user_id}",
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.update_user_data(context, request.params.user_id, request.payload)
+        Sealious.UserManager.update_user_data(context, request.params.user_id, request.payload)
         .then(function(response){
             reply();
         })
@@ -69,7 +69,7 @@ www_server.route({
     path: url+"/{user_id}",
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.delete_user(context, request.params.user_id)
+        Sealious.UserManager.delete_user(context, request.params.user_id)
         .then(function(user_data){
             reply(user_data);
         })
@@ -98,7 +98,7 @@ www_server.route({
     path: "/login",
     handler: function(request, reply) {
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.users.password_match(context, request.payload.username, request.payload.password)
+        Sealious.UserManager.password_match(context, request.payload.username, request.payload.password)
         .then(function(user_id){
             var session_id = www_server.new_session(user_id);
             if(request.payload.redirect_success){
@@ -145,7 +145,7 @@ www_server.unmanaged_route({
     path: "/managed-files/{file_id}/{file_name}",
     handler: function(request, reply){
         var context = www_server.get_context(request);
-        Sealious.Dispatcher.files.find(context, {id: request.params.file_id})
+        Sealious.FileManager.find(context, {id: request.params.file_id})
         .then(function(file_info){
             var r = reply.file(file_info[0].path_on_hdd);
             if(file_info[0].mime) r.type(file_info[0].mime);
