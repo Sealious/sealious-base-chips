@@ -1,3 +1,4 @@
+var url = require("url");
 var Sealious = require("sealious");
 var sha1 = require("sha1");
 
@@ -13,7 +14,10 @@ var www_server = new Sealious.ChipTypes.Channel("www_server");
 
 Sealious.ConfigManager.set_default_config(
     "chip.channel.www_server", {
-        port: 8080
+        connections: [{
+            port: 8080,
+            routes: { cors: true }
+        }]
     }
 );
 
@@ -30,23 +34,43 @@ function add_route(route) {
 }
 
 www_server.start = function(){
-    var port = Sealious.ConfigManager.get_config().chip.channel.www_server.port;
-    this.server.connection({port: port,  routes: { cors: true }});
+    var config = Sealious.ConfigManager.get_config().chip.channel.www_server;
+    for (var cnx in config.connections) {
+        this.server.connection(config.connections[cnx]);
+    }
+    for (var rdir in config.redirections) {
+        this.server.ext("onRequest", function (request, reply) {
+            if (request.connection.info.port === config.redirections[rdir].from) {
+                return reply.redirect(url.format({
+                    protocol: config.redirections[rdir].protocol,
+                    hostname: request.info.hostname,
+                    pathname: request.url.path,
+                    port: config.redirections[rdir].to
+                }));
+            }
+            reply.continue();
+        });
+    }
     for (i in this.routing_table) {
         this.server.route(this.routing_table[i]);
     }
-	process.on('uncaughtException', function(err) {
-		if(err.errno === 'EADDRINUSE')
-			console.log("Port " + port + " is already taken - cannot start www-server.");
-		else if(err.errno === 'EACCES')
-			console.log("Unsufficient privileges to start listening on port " + port + ".");
-		else 
-			console.error(err);
-		process.exit(1);
-	});  
 	www_server.server.start(function(err){
-		Sealious.Logger.info('SERVER RUNNING: '+www_server.server.info.uri+"\n");
-	})
+        if (err) {
+            Sealious.Logger.error(err.message);
+            process.exit(1);
+        } else {
+            for (var cnx in config.connections) {
+                Sealious.Logger.info(
+                    "SERVER RUNNING: " +
+                    (typeof config.connections[cnx].tls === "undefined" ? "http" : "https") +
+                    "://" +
+                    www_server.server.info.host +
+                    ":" +
+                    config.connections[cnx].port
+                );
+            }
+	    }
+    });
 }
 
 www_server.get_context = function(request){
